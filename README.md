@@ -76,7 +76,51 @@ Ydre enheder kan have blinkende lys og vejklokke kan ringe pulserende. Blink er 
 ### Uordenssignal
 Et uordenssignal har 2 brandgule lanterner. Signalet giver 2 signalaspekter:
 * Overkørsel er spærret for tog. Gule lanterner lyser.
-* Overkørsel må passeres af tog. Gule lanterner er slukket.
+* Overkørsel må passeres af tog. Gule lanterner er slukket.  
 Et uordenssignal kan have 1 hvid lanterne. Den blinker hvidt lys, når overkørsel må passeres af tog.
 
+
+### Overkørselssignal
+Et overkørselssignal har 1 brandgul lanterne. Signalet giver 2 signalaspekter:
+* Overkørsel er spærret for tog. Gul lanterne lyser.
+* Overkørsel må passeres af tog. Gul lanterne er slukket.  
+Et overkørselssignal kan have 1 hvid lanterne. Den blinker hvidt lys, når overkørsel må passeres af tog.
+
+### Vejlys
+Vejlys har 1 rød lanterne. Signalet giver 2 signalaspekter:
+* Overkørsel er spærret for vejtrafik. Rød lanterne blinker.
+* Overkørsel må passeres af vejtrafik. Rød lanterne er slukket.
+
+### Vejklokke
+Vejklokke giver 2 signalaspekter:
+* Overkørsel er spærret for vejtrafik. Klokken ringer pulserende.
+* Overkørsel må passeres af vejtrafik. Klokken er slukket.
+
+### Vejbom
+Vejbom giver 2 signalaspekter:
+* Overkørsel er spærret for vejtrafik. Bommen er nede.
+* Overkørsel må passeres af vejtrafik. Bommen er oppe.
+
+### Lampe for togvej
+En lampe for togvej hører i virkeligheden ikke til styring af overkørsel, men leveres med model, så man ved simulering kan se om der er stillet togvej.
+
+## Overkørslens betjening og sensorer
+Når overkørsel er i gang, kan den være i en tilstand, hvor der ikke er mulighed for at modtage kommando. For eksempel slukning, når bomme er på vej ned. Der skal være mulighed for at magasinere til senere. Der skal være mulighed for at resette magasin.
+
+### Knap for manuel tænd eller sluk
+Er overkørslen slukket, tænder knappen for overkørslen. Er overkørslen tændt, slukker knappen for overkørslen; men kun hvis overkørslen må slukkes. Normalt skal knappen ikke være permanent tændt og normalt skal man ikke huske at slukke, så normalt skal knappen tilbagestilles og være klar
+til ny tænding. Er overkørsel i rette tilstand, kan en ny tænding magasineres til senere.
+
+### Tændsted
+Tændsted kan give 1 melding: Tog passeret i 1 retning.
+Efter en passage, skal sensorenheden beholde sin melding, indtil overkørslens styring har brugt den. 
+
+### Togvejsmelding
+Enheden til togvejsmelding styres udelukkende af sikringsanlægget og giver melding til overkørslens styring. Muligvis vælges at give melding om togvejsspærring.
+
+## Opbygning af hardware med Arduino
+En Arduino’s ind- og udgange konfigureres til den konkrete overkørsel.
+
+Prototype opstilles på breadboard.
+Arduino får 1 udgang til styring. Er der behov for at styre flere vejlys, klokker og bomme, skal disse styres af effektelektronik.
 
