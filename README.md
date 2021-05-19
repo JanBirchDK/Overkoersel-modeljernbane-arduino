@@ -1,4 +1,4 @@
-# Indledning
+# Model til modeljernbaneoverkørsel - styring og overvågning
 Til en modelbane bliver er bygget en model til styring og overvågning af en overkørsel:  
 * For en station på en enkeltsporet strækning.  
 * Som varslingsanlæg eller som halvbomsanlæg.
