@@ -12,13 +12,16 @@ Der er flere formål med dette udviklingsprojekt:
 * Jeg lærer at programmere Arduino, dens muligheder og dens begrænsninger.  
 * Jeg videre udvikler min viden og kunnen i objektorienteret programudvikling.  
 
-# I dette repository
+## I dette repository
 Køreklar model til en Arduino ligger i de øvrige repositories.  
 
 Dette repository indeholder software model, som er et bibliotek med software komponenter.  
 Tilføjelse af bibliotek til Arduino IDE er beskrevet på arduino.cc.  
 
 Til biblioteket ligger der en vejlening, i hvordan man bruger det. Desuden er der en vejledning til programmering af en konkret løsning til en overkørsel.  
+
+## Versioner historik
+* Version 1.0: Model med komponenter til styring og overvågning af overkørsel. Komponenter til vejbom venter på design og programmering.
 
 # Think big build small
 Udviklingen bliver udført trinvist fra det simple til den avancerede model.  
