@@ -16,9 +16,10 @@ Der er flere formål med dette udviklingsprojekt:
 Køreklar model til en Arduino ligger i de øvrige repositories.  
 
 Dette repository indeholder software model, som er et bibliotek med software komponenter.  
-Tilføjelse af bibliotek til Arduino IDE er beskrevet på arduino.cc.  
+* Beskrivelse af biblioteket.
+* Vejledning til programmering af en konkret løsning til en overkørsel
 
-Til biblioteket ligger der en vejlening, i hvordan man bruger det. Desuden er der en vejledning til programmering af en konkret løsning til en overkørsel.  
+Tilføjelse af bibliotek til Arduino IDE er beskrevet på arduino.cc. Download zip-fil.  
 
 ## Versioner historik
 * Version 1.0: Model med komponenter til styring og overvågning af overkørsel. Komponenter til vejbom venter på design og programmering.
