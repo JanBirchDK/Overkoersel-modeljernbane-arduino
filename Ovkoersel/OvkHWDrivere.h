@@ -1,10 +1,10 @@
 /*
  * Projekt: Overkørsel st. enkeltsporet strækning
  * Produkt: Overkørsel hardware drivere
- * Version: 1.0
+ * Version: 1.1
  * Type: Bibliotek
  * Programmeret af: Jan Birch
- * Opdateret: 04-05-2021
+ * Opdateret: 31-05-2021
  * GNU General Public License version 3
  * This file is part of Overkørsel IO kerne.
  * 
@@ -23,6 +23,7 @@
  * 
  * Noter:
  * Se koncept og specifikation for en detaljeret beskrivelse af programmet, formål og anvendelse.
+ * Version 1.1: Tilføjet driver til servomotor
  */
 
 #include <Arduino.h>
@@ -102,6 +103,7 @@ protected:
   virtual void sendOut(void)=0;
 public:
   t_DigitalOutDrv(bool a_value = LOW) : value(a_value) {}
+  virtual void doClockCycle(void) {};
   void write(bool a_value);
 };
 
@@ -131,4 +133,139 @@ t_SimpleOnOff::t_SimpleOnOff(byte a_pin, bool a_value = LOW) : t_DigitalOutDrv(a
   digitalWrite(pin, a_value);
 }
 
+//----------
+
+#ifdef BrugVejbom
+#include <Servo.h>
+
+// Opsætning af maks specifikationer til servomotor
+const struct {
+  int PulseWidthMin = 544;
+  int PulseWidthMax = 2400;
+  int AngleMin = 0;
+  int AngleMax = 180;
+  int AnglePmsek = 20;
+  int AngleDiff = 90;
+} PWMLimits;
+
+// Ansvar: Denne klasse varetager al funktion til styring af en servomotor.
+// Udlæsning til pulsbreddemoduleret hardware port. Grænseflade til software.
+// Seqs: Et bomdrev løber igennem 3 trin, når det går op eller ned
+// seq: Bomdrevets trin
+// servoPort: Portobjekt
+// minPulseWidth: Konfigureret minimum pulsbredde
+// maxPulseWidth: Konfigureret maksimum pulsbredde
+// timeAngle: Timer til bombevægelse
+// anglePmsek: Antal msek per grad bombevægelse
+// upAngle: Vinkel når bomdrev er i oppe
+// downAngle: Vinkel når bomdrev er i nede
+// currentAngle: Vinkel på et tidspunkt
+// startMotor(...): Sætter PWM variable indenfor grænser og kobler motor til port
+// startMotor variant til konfiguration af alle motorparametre
+// doClockCycle(...): Gennemløb på tid
+// sendOut(...): Sender værdi til port
+// setAngleAdjust(...): Sætter justeringsvinkel og tjekker om max grænser overholdes. Sætter arm i startposition
+// setBarrierTime(...): Sætter tid for bevægelse fra yderstilling til yderstilling
+// setPWtime(...): Sætter grænser for pulsbredde
+class t_ServoMotor: public t_DigitalOutDrv {
+private:
+  enum {STABLE, GOUP, GODOWN};
+  byte seq;
+  Servo servoPort;
+  int minPulseWidth;
+  int maxPulseWidth;
+  t_ClockWork timeAngle;
+  int anglePmsek;
+  int upAngle;
+  int downAngle;
+  int currentAngle;
+  void sendOut(void);
+  bool setAngleAdjust(int a_upAngle, int a_angleDiff);
+  bool setBarrierTime(unsigned long barrierTime);
+  bool setPWtime(int minPWt,int maxPWt);
+public:  
+  t_ServoMotor(bool a_value=LOW): t_DigitalOutDrv(a_value), seq(STABLE) {}
+  void startMotor(byte pin, int angleAdjust, unsigned long barrierTime) {
+    startMotor(pin, angleAdjust, PWMLimits.AngleDiff, barrierTime, PWMLimits.PulseWidthMin, PWMLimits.PulseWidthMax);}
+  void startMotor(byte pin, int angleAdjust, int angleDiff, unsigned long barrierTime, int minPWt, int maxPWt);
+  void doClockCycle(void);
+};
+
+void t_ServoMotor::sendOut(void) {
+  int currentPW;
+  if (servoPort.attached() == true) {
+    currentPW = map(currentAngle, PWMLimits.AngleMin, PWMLimits.AngleMax, minPulseWidth, maxPulseWidth);
+    servoPort.writeMicroseconds(currentPW);
+  }
+}
+
+bool t_ServoMotor::setAngleAdjust(int a_upAngle, int a_angleDiff) {
+  bool isValid = false;
+  int angleDiff, maxUpAngle;
+  angleDiff = constrain(a_angleDiff, PWMLimits.AngleMin, PWMLimits.AngleMax);
+  isValid = (angleDiff == a_angleDiff);
+  maxUpAngle = PWMLimits.AngleMax-angleDiff;
+  upAngle = constrain(a_upAngle, PWMLimits.AngleMin, maxUpAngle);
+  isValid = isValid && (upAngle == a_upAngle);
+  downAngle = upAngle+angleDiff;
+  currentAngle = (value == HIGH)?upAngle:downAngle;
+  return isValid;
+}
+
+bool t_ServoMotor::setBarrierTime(unsigned long barrierTime) {
+  bool isValid = false;
+  anglePmsek = (downAngle > upAngle)?barrierTime/(downAngle-upAngle):PWMLimits.AnglePmsek;
+  isValid = (anglePmsek >= PWMLimits.AnglePmsek);
+  timeAngle.setDuration(anglePmsek);
+  return isValid;
+}
+
+bool t_ServoMotor::setPWtime(int minPWt, int maxPWt) {
+  bool isValid = false;
+  minPulseWidth = constrain(minPWt, PWMLimits.PulseWidthMin, PWMLimits.PulseWidthMax);
+  isValid = (minPulseWidth == minPWt);
+  maxPulseWidth = constrain(maxPWt, PWMLimits.PulseWidthMin, PWMLimits.PulseWidthMax);
+  isValid = isValid && (maxPulseWidth == maxPWt);
+  isValid = isValid && (minPulseWidth < maxPulseWidth);
+  return isValid;
+}
+
+void t_ServoMotor::startMotor(byte pin, int angleAdjust, int angleDiff, unsigned long barrierTime, int minPWt, int maxPWt) {
+  bool allowStart = setAngleAdjust(angleAdjust, angleDiff);
+  allowStart = allowStart && setBarrierTime(barrierTime);
+  allowStart = allowStart && setPWtime(minPWt, maxPWt);
+  if (allowStart == true) {
+    servoPort.attach(pin);
+    sendOut();  
+  }
+}
+
+void t_ServoMotor::doClockCycle(void){
+  switch (seq) {
+    case STABLE:
+      if ((value == HIGH) && (currentAngle == downAngle)) seq = GOUP;
+      if ((value == LOW) && (currentAngle == upAngle)) seq = GODOWN;
+    break;
+    case GOUP:
+      if (currentAngle > upAngle) {
+        if (timeAngle.triggered() == true) {
+          currentAngle--;
+          sendOut();
+        }       
+      }
+      else seq = STABLE;      
+    break;
+    case GODOWN:
+      if (currentAngle < downAngle) {
+        if (timeAngle.triggered() == true) {
+          currentAngle++;
+          sendOut();
+        }
+      }
+      else seq = STABLE;
+    break;
+  }
+}
+  
+#endif
 #endif
