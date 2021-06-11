@@ -1,10 +1,10 @@
 /*
  * Projekt: Overkørsel st. enkeltsporet strækning
  * Produkt: Overkørsel eksterne enheder
- * Version: 1.1
+ * Version: 1.2
  * Type: Bibliotek
  * Programmeret af: Jan Birch
- * Opdateret: 17-05-2021
+ * Opdateret: 11-06-2021
  * GNU General Public License version 3
  * This file is part of Overkørsel IO kerne.
  * 
@@ -23,8 +23,9 @@
  * 
  * Noter:
  * Se koncept og specifikation for en detaljeret beskrivelse af programmet, formål og anvendelse.
- * Veersion 1.1: nullptr brugt jf. standard for c++
- */
+ * Version 1.1: nullptr brugt jf. standard for c++
+ * Version 1.2: Tilføjet ydre enhed for vejbom
+*/
 
 #include <Arduino.h>
 #include "OvkTiming.h"
@@ -131,4 +132,26 @@ void t_RoadSignal::to(byte a_state) {
   if (state == PASS) p_driver->write(LOW);
 }
 
+//----------
+
+#ifdef BrugVejbom
+
+// Ansvar: Varetager vejsignal
+// doClockCycle: Klokcyklus overføres til driver
+// to(...): Opdaterer den ydre enheds status
+class t_Barrier: public t_CrossingDevice {
+public:
+  t_Barrier(byte a_state=BLOCK) : t_CrossingDevice(a_state) {}
+  void doClockCycle(void) {if (p_driver == nullptr) return; p_driver->doClockCycle();}
+  void to(byte a_state);
+};
+
+void t_Barrier::to(byte a_state) {
+  if (p_driver == nullptr) return;
+  state = a_state;
+  if (state == BLOCK) p_driver->write(LOW);
+  else p_driver->write(HIGH);
+}
+
+#endif
 #endif
