@@ -22,7 +22,8 @@ Dette repository indeholder software model, som er et bibliotek med software kom
 Tilføjelse af bibliotek til Arduino IDE er beskrevet på arduino.cc. Download zip-fil.  
 
 ## Versioner historik
-* Version 1.0: Model med komponenter til styring og overvågning af overkørsel. Komponenter til vejbom venter på design og programmering.
+* Version 1.0: Model med komponenter til styring og overvågning af overkørsel. 
+* Version 1.1: Komplet model med banesignal, vejsignal. vejklokke og vejbom. 
 
 # Think big build small
 Udviklingen bliver udført trinvist fra det simple til den avancerede model.  
@@ -82,7 +83,6 @@ Et uordenssignal har 2 brandgule lanterner. Signalet giver 2 signalaspekter:
 * Overkørsel er spærret for tog. Gule lanterner lyser.
 * Overkørsel må passeres af tog. Gule lanterner er slukket.  
 Et uordenssignal kan have 1 hvid lanterne. Den blinker hvidt lys, når overkørsel må passeres af tog.
-
 
 ### Overkørselssignal
 Et overkørselssignal har 1 brandgul lanterne. Signalet giver 2 signalaspekter:
